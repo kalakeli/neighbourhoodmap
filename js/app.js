@@ -189,10 +189,7 @@ function populateInfoWindow(marker, localInfoWindow) {
 function getFlickrPics(tags, lat, lng, iw) {
   var loadingbox = $( '#loadingbox' );
   var errorbox = $( '#errorbox' );
-  var radius = "0.2"; // 200m radius should be ok for the locations chosen
-  var units = "km";   // kilometers (km) or miles (mi)
-  var myapikey = "c032766f0c46ea5711f482ace878c21a";
-  var url = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=9214cedf6fa3d013c1306f6402698e6a&per_page=2&nojsoncallback=1";
+  var url = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=7f184bc17deeb930da0352704733534e&per_page=2&nojsoncallback=1";
   var data = { tags: tags,
                lat: lat,
                lon: lng,
@@ -263,7 +260,7 @@ function getFlickrPics(tags, lat, lng, iw) {
 //   - pos     -> where to put the name
 //   - ownerID -> ID of the flickr user
 function getFlickrProfile(pos, ownerID) {
-  var url = "https://api.flickr.com/services/rest/?method=flickr.profile.getProfile&api_key=9214cedf6fa3d013c1306f6402698e6a&nojsoncallback=1";
+  var url = "https://api.flickr.com/services/rest/?method=flickr.profile.getProfile&api_key=7f184bc17deeb930da0352704733534e&nojsoncallback=1";
 
   // Fire off the request
   var req = $.ajax({
