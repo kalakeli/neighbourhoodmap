@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang=de>
+  <head>
+    <meta charset=utf-8>
+    <meta name="author" content="Karsten Berlin">
+    <meta content="width=device-width,initial-scale=1" name=viewport>
+    <title>Neighbourhood Map</title>
+    <!-- custom css -->
+    <link href="css/styles.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link href="css/font-awesome.min.css" rel="stylesheet">
+    <!-- text and headline font -->
+    <link href="https://fonts.googleapis.com/css?family=Pathway+Gothic+One" rel="stylesheet">
+    <!-- Include knockout -->
+    <script src="js/knockout-3.4.2.js"></script>
+    <!-- Include jQuery -->
+    <script
+    			  src="http://code.jquery.com/jquery-1.12.4.min.js"
+    			  integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+    			  crossorigin="anonymous"></script>
+
+  </head>
+  <body>
+    <noscript>
+      <div id="errorbox">
+        <h2>Ooops .. something went wrong!</h2>
+        <p>We are sorry, but to use this app you need to have Javascript
+          enabled in your browser.</p>
+        <p>
+          Find out how to
+          <a href="https://www.enable-javascript.com/" target="_blank">
+            enable Javascript
+          </a>
+        </p>
+      </div>
+    </noscript>
+    <div class="container">
+      <div class="sideboard">
+        <h1>Karsten's locations</h1>
+        <div class="filter">
+          <input type="text" name="locfilter" id="txtfilter" value="">
+          <button type="button" name="filter" id="btnfilter">
+            <i class="fa fa-filter" aria-hidden="true"></i>&nbsp;Filter
+          </button>
+        </div>
+        <ul data-bind="foreach: locations">
+          <li data-bind="text: title"></li>
+        </ul>
+      </div>
+      <div class="hamburger">
+        <i class="fa fa-2x fa-bars" aria-hidden="true"></i>
+      </div>
+      <div id="map"></div>
+      <div id="loadingbox"><i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i>&nbsp;&nbsp;Loading ... </div>
+      <div id="errorbox"></div>
+    </div>
+
+
+    <!-- Include map and ui work -->
+    <script src="js/app.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
