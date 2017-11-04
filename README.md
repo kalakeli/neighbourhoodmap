@@ -51,7 +51,7 @@ Flickr requires you to define the response format. The ajax request thus would n
 Errors can be thrown in several places and are caught and presented in a more amiable way to the user. 
 
 ### No JavaScript 
-The neighbourhoodmap needs JavaScript to run. A <noscript> tag indicates this to the user.
+The neighbourhoodmap needs JavaScript to run. A _**noscript**_ tag indicates this to the user.
 
 ### GoogleMaps Errors - find a list [here](https://developers.google.com/maps/documentation/javascript/error-messages?hl=en)
 Google hides its errors within the console. Still, there might be issues also interesting to the client, therefore the function _**readConsole()**_ hacks into the console to read warnings and error messages that might be helpful. 
