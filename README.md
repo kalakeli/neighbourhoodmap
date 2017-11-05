@@ -66,8 +66,9 @@ Google hides its errors within the console. Still, there might be issues also in
 ## ToDo
 - [x] create location list
 - [x] create map with markers for locations
-- [x] create to hide / show the location list in an intuitive way
-- [x] create animation for markers when hovering a list item
+- [x] create a means to hide / show the location list in an intuitive way
+- [x] create animation for markers / list item when hovering a list item
+- [x] create animation for markers / list item when hovering a marker
 - [x] open info window on list item click or marker click
 - [x] use flickr as a 3rd party webservice to asynchronously download images for the location
 - [ ] implement a filter to display only those locations and markers fitting the selection
