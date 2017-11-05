@@ -23,11 +23,50 @@ The location list to the left is built using [KnockoutJS](http://knockoutjs.com/
 ```
 Clicking a list item or marker on the map will open an info window offering more information on the location plus pictures (see __*Third party webservices used*__)
 
+### Animations inside the app
+The list and the markers are attached to one another. To show this, the markers start bouncing when a location or marker is hovered, just as vice versa the location colour changes when a marker or the list item is hovered.
+Identifying the marker to be animated is done via an event handler attached to the list items. 
+```javascript
+$( "li" ).hover(
+  // mouseover-action -> start marker bounce
+  function() {
+    var context = ko.contextFor(this);
+    toggleBounce(getMarker(context.$data.place_id));
+  },
+  // mouseout -> stop marker bounce
+  function() {
+    var context = ko.contextFor(this);
+    toggleBounce(getMarker(context.$data.place_id));
+  }
+);
+```
+getMarker() finds the correct marker in the list via its **place_id**
+
+The bounce function is as follows
+```javascript
+function toggleBounce(marker) {
+  for (var i=0; i<markers.length; i++) {
+    if (markers[i] == marker) {
+      if (marker.getAnimation() !== null) {
+        marker.setAnimation(null);
+      } else {
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+      }
+    } else {
+      markers[i].setAnimation(null);
+    }
+  }
+}
+```
+The specific marker is sent as a parameter. It starts bouncing when the animation is null or stops. Because moving the mouse quickly over the list items started the animation for several markers, there is a loop  which takes the list of all markers and iterates through it. It sets all marker animations to null but of the one sent as a parameter. 
+
 ## Third party webservices used
 ### Flickr
 [Flickr](https://www.flickr.com/) offers web services hidden in the App Garden [Api Documentation](https://www.flickr.com/services/api/) available to you when you register for an account and request an API KEY. 
 
-The neighbourhood map uses two asynchronous webservice requests: **flickr.photos.search** to find images and **flickr.profile.getProfile** to find the user owning the copyright for the image. 
+The neighbourhood map uses two asynchronous webservice requests: 
+* **flickr.photos.search** to find images and 
+* **flickr.profile.getProfile** to find the user owning the copyright for the image. 
 
 ```javascript
   var url = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=XXXXXXXX&per_page=2&nojsoncallback=1";
