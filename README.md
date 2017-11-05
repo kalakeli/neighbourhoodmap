@@ -23,7 +23,8 @@ The location list to the left is built using [KnockoutJS](http://knockoutjs.com/
 ```
 Clicking a list item or marker on the map will open an info window offering more information on the location plus pictures (see __*Third party webservices used*__)
 
-### Animations inside the app
+## Events inside the app
+### list item hover / marker hover
 The list and the markers are attached to one another. To show this, the markers start bouncing when a location or marker is hovered, just as vice versa the location colour changes when a marker or the list item is hovered.
 Identifying the marker to be animated is done via an event handler attached to the list items. 
 ```javascript
@@ -42,6 +43,18 @@ $( "li" ).hover(
 ```
 getMarker() finds the correct marker in the list via its **place_id**
 
+Likewise, the marker has event listeners for mouseover and mouseout
+```javascript
+marker.addListener('mouseover', function() {
+  toggleBounce(this);
+  $("#loc_"+this.id+"").css("color", "white");
+});
+marker.addListener('mouseout', function() {
+  toggleBounce(this);
+  $("#loc_"+this.id+"").css("color", "#aaaaaa");
+});
+```    
+
 The bounce function is as follows
 ```javascript
 function toggleBounce(marker) {
@@ -59,6 +72,49 @@ function toggleBounce(marker) {
 }
 ```
 The specific marker is sent as a parameter. It starts bouncing when the animation is null or stops. Because moving the mouse quickly over the list items started the animation for several markers, there is a loop  which takes the list of all markers and iterates through it. It sets all marker animations to null but of the one sent as a parameter. 
+
+### list item click / marker click
+Clicking a list item or marker opens a popup window above the marker showing more information and eventually inserting the flickr images.
+The event handler attached to the list item where you also need to identify the correct marker. 
+```javascript
+$( "li" ).on("click",
+  function() {
+    var context = ko.contextFor(this);
+    var theMarker = getMarker(context.$data.place_id);
+    populateInfoWindow(theMarker, infoWindow);
+  }
+);
+```
+
+The simpler event handler attached to the marker:
+```javascript
+marker.addListener('click', function() {
+  populateInfoWindow(this, infoWindow);
+});
+```
+
+The function to populate the information window with data and 3rd party information, i.e. the flickr images: 
+```javascript
+function populateInfoWindow(marker, localInfoWindow) {
+  // make sure the infoWindow is not already open
+  if (localInfoWindow.marker != marker) {
+    var inner = "<h2>" + marker.title + "</h2><h3>Flickr Images</h3>";
+
+    localInfoWindow.marker = marker;
+    localInfoWindow.setContent(inner);
+    localInfoWindow.open(map, marker);
+
+    // get flickr pics for chosen location
+    getFlickrPics(marker.title, marker.position.lat(), marker.position.lng(), localInfoWindow);
+
+    // add listener to clear the marker from the infoWindow
+    localInfoWindow.addListener('closeclick', function() {
+      localInfoWindow.marker = null;
+    });
+  }
+}
+```
+
 
 ## Third party webservices used
 ### Flickr
