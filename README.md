@@ -115,6 +115,10 @@ function populateInfoWindow(marker, localInfoWindow) {
 }
 ```
 
+### filter button click
+The location list and the list of shown markers can be influenced via a text field above the list. Only the items fitting the filter text are shown when the button is clicked. 
+
+
 
 ## Third party webservices used
 ### Flickr
