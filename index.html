@@ -39,12 +39,12 @@
         <h1>Karsten's locations</h1>
         <div class="filter">
           <input type="text" name="locfilter" id="txtfilter" value="">
-          <button type="button" name="filter" id="btnfilter">
+          <button type="button" name="filter" id="btnfilter" data-bind="click: function() { var txt = $('#txtfilter').val(); applyFilter(txt); }">
             <i class="fa fa-filter" aria-hidden="true"></i>&nbsp;Filter
           </button>
         </div>
-        <ul data-bind="foreach: locations">
-          <li data-bind="text: title"></li>
+        <ul data-bind="foreach: filteredLocations">
+          <li data-bind="text: title, attr: {id: 'loc_' + place_id }"></li>
         </ul>
       </div>
       <div class="hamburger">

@@ -65,8 +65,6 @@ var locations = [
 
 
 // -----  get GoogleMaps via ajax -----
-// GoogleMaps errors and warnings are 'hidden' in the console; to reach them,
-// take over the console (readConsole()) once the script was retrieved
 $.getScript( url )
   .done(function( script, textStatus ) {
     // look for GoogleMaps errors and warnings
@@ -122,6 +120,16 @@ function initMap() {
     marker.addListener('click', function() {
       populateInfoWindow(this, infoWindow);
     });
+    // create an mouseover event to bounce marker and highlight the list item
+    marker.addListener('mouseover', function() {
+      toggleBounce(this);
+      $("#loc_"+this.id+"").css("color", "white");
+    });
+    // create an mouseover event to stop the marker and de-highlight the list item
+    marker.addListener('mouseout', function() {
+      toggleBounce(this);
+      $("#loc_"+this.id+"").css("color", "#aaaaaa");
+    });
 
     // extend the map with the next position
     bounds.extend(markers[i].position);
@@ -132,10 +140,10 @@ function initMap() {
 
 }
 
-// -----  get Marker from array
+// -----  get Marker from array  ------
 function getMarker(id) {
-  if (markers.length>0) {
-    for (var i=0; i<markers.length; i++) {
+  if (markers.length > 0) {
+    for (var i = 0; i < markers.length; i++) {
       if (markers[i].id == id) {
         return markers[i];
       }
@@ -145,16 +153,39 @@ function getMarker(id) {
   }
 }
 
-// ------  toggle bouncing effect
-function toggleBounce(marker) {
-  if (marker.getAnimation() !== null) {
-    marker.setAnimation(null);
-  } else {
-    marker.setAnimation(google.maps.Animation.BOUNCE);
+
+// -----  filter markers  ------
+// - Parameters:
+//   - filteredmarkers  -> array with markers fitting the filter text
+function filterMarkers(filteredmarkers) {
+  var i;
+  // first off, hide all markers
+  for (i = 0; i < markers.length; i++) {
+    markers[i].setMap(null);
+  }
+  // show all markers left in the provided array 'filteredmarkers'
+  for (i = 0; i < filteredmarkers.length; i++) {
+    filteredmarkers[i].setMap(map);
   }
 }
 
-// ------  populate the infowindow with data from marker and 3rd party webservices
+
+// ------  toggle bouncing effect  ------
+function toggleBounce(marker) {
+  for (var i = 0; i < markers.length; i++) {
+    if (markers[i] == marker) {
+      if (marker.getAnimation() !== null) {
+        marker.setAnimation(null);
+      } else {
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+      }
+    } else {
+      markers[i].setAnimation(null);
+    }
+  }
+}
+
+// ------  populate infowindow with data from marker and 3rd party webservices
 function populateInfoWindow(marker, localInfoWindow) {
   // make sure the infoWindow is not already open
   if (localInfoWindow.marker != marker) {
@@ -227,7 +258,7 @@ function getFlickrPics(tags, lat, lng, iw) {
     if (response.stat === "ok") {
       var photos = response.photos.photo;
       if (photos.length > 0) {
-        for (var i=0; i<photos.length; i++) {
+        for (var i = 0; i < photos.length; i++) {
           var photo = photos[i];
           content += "<figure>";
           content += "<img src='https://farm"+photo.farm+".staticflickr.com/"+photo.server+"/"+photo.id+"_"+photo.secret+".jpg' width='320' alt='flickr img'>";
@@ -287,7 +318,7 @@ function getFlickrProfile(pos, ownerID) {
       cp += " " + ln;
     }
 
-    if (cp.length==0) {
+    if (cp.length == 0) {
       cp += " " + ownerID;
     }
     cp += "</a>";
