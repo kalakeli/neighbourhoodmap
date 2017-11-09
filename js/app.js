@@ -94,12 +94,12 @@ function initMap() {
   var bounds = new google.maps.LatLngBounds();
 
   // information will be put and shown in an infoWindow
-  infoWindow = new google.maps.InfoWindow();
+ infoWindow = new google.maps.InfoWindow();
 
 
   // iterate through my list of locations and show them with a marker on the map
   for (var i = 0; i < locations.length; i++) {
-
+    /* jshint loopfunc: true */
     var position = locations[i].location;
     var title = locations[i].title;
     var place_id = locations[i].place_id;
@@ -113,7 +113,7 @@ function initMap() {
       id: place_id
     });
 
-    // Push the marker to our array of markers.
+    // Push the marker to the array
     markers.push(marker);
 
     // create an onclick event to open an infowindow
@@ -318,7 +318,7 @@ function getFlickrProfile(pos, ownerID) {
       cp += " " + ln;
     }
 
-    if (cp.length == 0) {
+    if (cp.length === 0) {
       cp += " " + ownerID;
     }
     cp += "</a>";
@@ -329,10 +329,7 @@ function getFlickrProfile(pos, ownerID) {
       return "The user could not be read!";
     }
   });
-
-
 }
-
 
 // -----  read console messages --------
 // -- Note: Messages read below are just examples as they turned up
@@ -342,9 +339,8 @@ function readConsole() {
   var errorbox = $( '#errorbox' );
 
   if (console)  {
-    var original = console['error'];
-
-    console['error'] = function() {
+    var original = console.error;
+    console.error = function() {
 
        // check message
        if(arguments[0] && arguments[0].indexOf('InvalidKeyMapError') !== -1) {
@@ -361,10 +357,9 @@ function readConsole() {
        if (original.apply) {
          original.apply(console, arguments);
        }
+    };
 
-    }
-
-    console['warn'] = function() {
+    console.warn = function() {
 
        // check message
        if(arguments[0] && arguments[0].indexOf(' NoApiKeys') !== -1) {
@@ -379,7 +374,6 @@ function readConsole() {
        if (original.apply) {
          original.apply(console, arguments);
        }
-
-    }
+    };
   }
 }
