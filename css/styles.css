@@ -18,19 +18,7 @@ body {
   position: relative;
 }
 
-.sideboard {
-  transition: all .5s ease;
-  padding: 5px 0 0 10px;
-  width: 290px;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-.sideboard.shift {
-  transition: all .5s ease;
-  transform:translate(-300px);
-}
+
 
 .hamburger {
   transition: all .5s ease;
@@ -77,11 +65,12 @@ li {
 li:last-child {
   border: 0;
 }
-li:hover {
+li:hover, li.white {
   transition: all .3s ease;
   color: #fff;
   cursor: pointer;
 }
+
 
 /* -- filter -- */
 .filter {
@@ -137,6 +126,30 @@ img {
   margin: 10px auto;
 }
 
+aside {
+  transition: all .5s ease;
+  padding: 5px 0 0 10px;
+  width: 290px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+aside.shift {
+  transition: all .5s ease;
+  transform:translate(-300px);
+}
+
+main {
+  transition: all .5s ease;
+  width: calc(100%-300px);
+  height: 100%;
+}
+main.shift {
+  transition: all .5s ease;
+  transform:translate(-300px);
+}
+
 /* -- map layer -- */
 #map {
   transition: all .5s ease;
@@ -146,10 +159,6 @@ img {
   position: absolute;
   right: 0px;
   top: 50px;
-}
-#map.shift {
-  transition: all .5s ease;
-  transform:translate(-300px);
 }
 
 /* -- loading layer -- */

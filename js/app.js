@@ -7,140 +7,142 @@ var errorH = "<h2>Ooops .. something went wrong!</h2>";
 var url = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyCltzwNrtVheO7HFu7oiV6tgZ9Nx5YBIuA&v&v=3&callback=initMap';
 var infoWindow;
 
-var locations = [
-  {
-   title: 'Burg Hülshoff',
-   location: {lat: 51.970125, lng: 7.503833},
-   place_id:	"ChIJk8v7uuuxuUcRW0Rzw_YbmlM"
-  },
-  {
-   title: 'Haus Rüschhaus',
-   location: {lat: 51.98547, lng: 7.55091},
-   place_id:	"ChIJabZn3FCwuUcR3vZx741ETic"
-  },
-  {
-   title: 'Rieselfelder',
-   location: {lat: 52.02875, lng: 7.65455},
-   place_id:	"ChIJl4EzT4e5uUcRJdKHjyHnnP0"
-  },
-  {
-   title: 'Schleuse',
-   location: {lat: 51.97786, lng: 7.66082},
-   place_id:	"ChIJJd634di6uUcRDdmxq-hc39g"
-  },
-  {
-   title: 'Hauptbahnhof',
-   location: {lat: 51.956655, lng: 7.634636},
-   place_id:	"ChIJJeZ5htm6uUcRLt84VwgQXgo"
-  },
-  {
-   title: 'St.-Paulus-Dom',
-   location: {lat: 51.962981, lng: 7.625767},
-   place_id:	"ChIJsxS-ssO6uUcRJCC7ZiHI0rg"
-  },
-  {
-   title: 'Schloss',
-   location: {lat: 51.963619, lng: 7.613081},
-   place_id:	"ChIJNfHPUr66uUcRkJuKn6KAJKQ"
-  },
-  {
-   title: 'Lotharinger Kloster',
-   location: {lat: 51.965484, lng: 7.632778},
-   place_id:	"ChIJC3gFi-e6uUcRm_3hZYMQ1iQ"
-  },
-  {
-   title: 'Clemenskirche Münster',
-   location: {lat: 51.960874, lng: 7.631},
-   place_id: "EjRBbiBkZXIgQ2xlbWVuc2tpcmNoZSAxNCwgNDgxNDMgTcO8bnN0ZXIsIERldXRzY2hsYW5k"
- },
-  {
-   title: 'Aasee Münster',
-   location: {lat: 51.957516, lng: 7.615693},
-   place_id: "ChIJzc0-jse6uUcRbI36lIzbZnM"
-  }
-];
+
+var locationListModel = function () {
+    var self = this;
+    self.shiftClicked = ko.observable(false);             // note if content needs to be shifted left
+    self.textToScan = ko.observable("");
+    self.allItems = ko.observableArray(locations);        // Initial items
+    self.selectedItems = ko.observableArray(locations);   // Initial selection list
+
+    // the function is called whenever self.textToScan updates
+    self.scanLocations = ko.computed( function() {
+      var filter = self.textToScan().toLowerCase();
+      if (filter.length==0) {
+        return self.selectedItems(locations);
+      } else {
+        self.selectedItems([]);
+        return ko.utils.arrayFilter(self.allItems(), function(item) {
+            if (item.title.toLowerCase().indexOf(filter)>=0) {
+              self.selectedItems.push(item);
+            }
+        });
+      }
+    });
+
+    // hamburger icon click toggles the shiftClicked observable, which
+    // is bound by the <aside> and <main> areas on the page and will
+    // perform a shift left / right depending on the status
+    hamburgerClicked = function(data, event) {
+      self.shiftClicked(!self.shiftClicked());
+    };
+
+    // onclick open the infoWindow and populate it with data
+    locationClicked = function(data, event) {
+      populateInfoWindow(getMarker(data.place_id), infoWindow);
+    };
+
+    // on mouseover start bouncing
+    locationMouseover = function(data, event) {
+      toggleBounce(getMarker(data.place_id));
+    };
+
+    // on mouseout stop bouncing
+    locationMouseout = function(data, event) {
+      toggleBounce(getMarker(data.place_id));
+    };
+};
+
+
+ko.applyBindings(new locationListModel());
 
 
 
-
+// ----- G O O G L E   M A P S   P A R T   -------------
 
 // -----  get GoogleMaps via ajax -----
 $.getScript( url )
   .done(function( script, textStatus ) {
-    // look for GoogleMaps errors and warnings
-    readConsole();
+    readConsole(); // look for GoogleMaps errors and warnings
   })
 
   .fail(function( jqxhr, settings, exception ) {
-    console.log(xhr.getAllResponseHeaders());
-
+    console.log(jqxhr.getAllResponseHeaders());
     $( '#errorbox' ).html( errorH + "<p>The GoogleMaps script failed to load!</p>" );
     $( '#loadingbox' ).css('display', 'none');
     $( '#errorbox' ).fadeIn("fast");
   });
 
 
+  // -----  initMap() --------
+  function initMap() {
+    $( '#loadingbox' ).css('display', 'none');
 
-// -----  initMap() --------
-function initMap() {
-  $( '#loadingbox' ).css('display', 'none');
-
-  map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: 51.9601537, lng: 7.6409484},
-    zoom: 13
-  });
-
-  // the map will be bound to an extent covering all locations
-  var bounds = new google.maps.LatLngBounds();
-
-  // information will be put and shown in an infoWindow
- infoWindow = new google.maps.InfoWindow();
-
-
-  // iterate through my list of locations and show them with a marker on the map
-  for (var i = 0; i < locations.length; i++) {
-    /* jshint loopfunc: true */
-    var position = locations[i].location;
-    var title = locations[i].title;
-    var place_id = locations[i].place_id;
-
-    // Create one marker per location, and put into markers array.
-    var marker = new google.maps.Marker({
-      map: map,
-      position: position,
-      title: title,
-      animation: google.maps.Animation.DROP,
-      id: place_id
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: {lat: 51.9601537, lng: 7.6409484},
+      zoom: 13
     });
 
-    // Push the marker to the array
-    markers.push(marker);
+    // the map will be bound to an extent covering all locations
+    var bounds = new google.maps.LatLngBounds();
 
-    // create an onclick event to open an infowindow
-    marker.addListener('click', function() {
-      populateInfoWindow(this, infoWindow);
-    });
-    // create an mouseover event to bounce marker and highlight the list item
-    marker.addListener('mouseover', function() {
-      toggleBounce(this);
-      $("#loc_"+this.id+"").css("color", "white");
-    });
-    // create an mouseover event to stop the marker and de-highlight the list item
-    marker.addListener('mouseout', function() {
-      toggleBounce(this);
-      $("#loc_"+this.id+"").css("color", "#aaaaaa");
+    // information will be put and shown in an infoWindow
+    infoWindow = new google.maps.InfoWindow();
+
+    // iterate through my list of locations and show them with a marker on the map
+    for (var i = 0; i < locations.length; i++) {
+      /* jshint loopfunc: true */
+      var position = locations[i].location;
+      var title = locations[i].title;
+      var place_id = locations[i].place_id;
+
+      // Create one marker per location, and put into markers array.
+      var marker = new google.maps.Marker({
+        map: map,
+        position: position,
+        title: title,
+        animation: google.maps.Animation.DROP,
+        id: place_id
+      });
+
+      // Push the marker to the array
+      markers.push(marker);
+
+      // add listeners for the marker
+      // - on click open the infoWindow and load external data
+      // - on mouseover / out toggle bounce and css class
+      marker.addListener('click', function() {
+        populateInfoWindow(this, infoWindow);
+      });
+  
+      marker.addListener('mouseover', function() {
+        toggleBounce(this);
+        $("#loc_"+this.id+"").toggleClass("white");
+      });
+
+      marker.addListener('mouseout', function() {
+        toggleBounce(this);
+        $("#loc_"+this.id+"").toggleClass("white");
+      });
+
+      // extend the map with the next position
+      bounds.extend(markers[i].position);
+    }
+
+    // adjust the map with the new bounds
+    map.fitBounds(bounds);
+
+
+    // add a listener to check on window size changes so that the map always fits
+    google.maps.event.addDomListener(window, 'resize', function() {
+      map.fitBounds(bounds);
     });
 
-    // extend the map with the next position
-    bounds.extend(markers[i].position);
   }
 
-  // adjust the map with the new bounds
-  map.fitBounds(bounds);
-
-}
 
 // -----  get Marker from array  ------
+// clicking an item in the list needs to connect with the correct marker
 function getMarker(id) {
   if (markers.length > 0) {
     for (var i = 0; i < markers.length; i++) {
@@ -152,23 +154,6 @@ function getMarker(id) {
     console.log("no markers defined");
   }
 }
-
-
-// -----  filter markers  ------
-// - Parameters:
-//   - filteredmarkers  -> array with markers fitting the filter text
-function filterMarkers(filteredmarkers) {
-  var i;
-  // first off, hide all markers
-  for (i = 0; i < markers.length; i++) {
-    markers[i].setMap(null);
-  }
-  // show all markers left in the provided array 'filteredmarkers'
-  for (i = 0; i < filteredmarkers.length; i++) {
-    filteredmarkers[i].setMap(map);
-  }
-}
-
 
 // ------  toggle bouncing effect  ------
 function toggleBounce(marker) {
@@ -184,6 +169,7 @@ function toggleBounce(marker) {
     }
   }
 }
+
 
 // ------  populate infowindow with data from marker and 3rd party webservices
 function populateInfoWindow(marker, localInfoWindow) {
