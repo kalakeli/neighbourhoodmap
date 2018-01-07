@@ -110,7 +110,7 @@ var locations = [
 [KnockoutJS](http://knockoutjs.com/) is used for the list of locations to the left.
 All the work is done in the View Model, in this case, the **locationListModel**.
 It defines a few observables in the beginning, which follow changes in the UI.
-For example, the text field above the location list (__<input type="text" id="txtfilter" data-bind='textInput:textToScan' />__) allows filtering the list.
+For example, the text field above the location list (__input type="text" id="txtfilter" data-bind='textInput:textToScan'__) allows filtering the list.
 It is bound to the variable __self.textToScan__, which is at first an empty observable.
 The computed function
  __scanLocations()__ takes the input from the text field and checks it against the
