@@ -1,7 +1,9 @@
 # neighbourhoodmap
 
 ## What *neighbourhoodmap* is
-The app is a GoogleMaps KnockoutJS application featuring a list of locations in Münster (Westphalia) in Germany. It is run by opening *index.html* in the browser. The location list is shown to the left of the page, on the map the locations are shown by markers. The list can be hidden / shown by clicking the hamburger icon in the top left of the page. **Hovering** over an item in the list animates the connected marker. **Clicking** a marker or list item will open an infoWindow with the name of the location, plus will it asynchronously download flickr images showing the location.
+The app is a HTML5 GoogleMaps KnockoutJS application featuring a list of locations in Münster (Westphalia) in Germany. It is run by opening *index.html* in the browser.
+The page is split in two parts. To the left, using an <aside> element, the location list is available. The remaining width of the page is taken by the <main> element with the map.
+The locations are shown by markers on the map. The list can be hidden / shown by clicking the hamburger icon in the top left of the page. **Hovering** over an item in the list animates the connected marker. **Clicking** a marker or list item will open an infoWindow with the name of the location, plus will it asynchronously download flickr images showing the location.
 
 ## How *neighbourhoodmap* works
 Some simple CSS is used to show / hide loading status and error messages that might occur.
@@ -48,22 +50,24 @@ function initMap() {
       id: place_id
     });
 
-    // Push the marker to our array of markers.
+    // Push the marker to the array
     markers.push(marker);
 
-    // create an onclick event to open an infowindow
+    // add listeners for the marker
+    // - on click open the infoWindow and load external data
+    // - on mouseover / out toggle bounce and css class
     marker.addListener('click', function() {
       populateInfoWindow(this, infoWindow);
     });
-    // create an mouseover event to bounce marker and highlight the list item
+
     marker.addListener('mouseover', function() {
       toggleBounce(this);
-      $("#loc_"+this.id+"").css("color", "white");
+      $("#loc_"+this.id+"").toggleClass("white");
     });
-    // create an mouseover event to stop the marker and de-highlight the list item
+
     marker.addListener('mouseout', function() {
       toggleBounce(this);
-      $("#loc_"+this.id+"").css("color", "#aaaaaa");
+      $("#loc_"+this.id+"").toggleClass("white");
     });
 
     // extend the map with the next position
@@ -72,105 +76,135 @@ function initMap() {
 
   // adjust the map with the new bounds
   map.fitBounds(bounds);
+
+  // add a listener to check on window size changes so that the map always fits
+  google.maps.event.addDomListener(window, 'resize', function() {
+    map.fitBounds(bounds);
+  });
 }
 ```
 
+Additionally to the markers, there is a listener guarding the window size. It
+adjusts the map to fit the extent of the markers.
+```javascript
+google.maps.event.addDomListener(window, 'resize', function() {
+  map.fitBounds(bounds);
+});
+```
 
 ### Location list
-The location list is defined as an Javascript object literal
+The location list is defined as an Javascript object literal and is saved as an
+external file.
 ```javascript
 var locations = [
   {
-   title: 'Burg Hülshoff',
-   location: {lat: 51.970125, lng: 7.503833},
-   place_id: "ChIJk8v7uuuxuUcRW0Rzw_YbmlM"
+    "title": "Burg Hülshoff",
+    "location": {"lat": 51.970125, "lng": 7.503833},
+    "place_id":	"ChIJk8v7uuuxuUcRW0Rzw_YbmlM"
   },
   ...
 ];
 ```
-The location list to the left is built using [KnockoutJS](http://knockoutjs.com/) and its declarative binding.
+
+## KnockoutJS
+[KnockoutJS](http://knockoutjs.com/) is used for the list of locations to the left.
+All the work is done in the View Model, in this case, the **locationListModel**.
+It defines a few observables in the beginning, which follow changes in the UI.
+For example, the text field above the location list (__<input type="text" id="txtfilter" data-bind='textInput:textToScan' />__) allows filtering the list.
+It is bound to the variable __self.textToScan__, which is at first an empty observable.
+The computed function
+ __scanLocations()__ takes the input from the text field and checks it against the
+ list of locations using the __arrayFilter()__ utility function KnockoutJS provides.
+The list of selected locations __self.selectedItems__ is adjusted accordingly.
+
+```javascript
+var locationListModel = function () {
+    var self = this;
+    self.shiftClicked = ko.observable(false);             // note if content needs to be shifted left
+    self.textToScan = ko.observable("");
+    self.allItems = ko.observableArray(locations);        // Initial items
+    self.selectedItems = ko.observableArray(locations);   // Initial selection list
+
+    // the function is called whenever self.textToScan updates
+    self.scanLocations = ko.computed( function() {
+      var filter = self.textToScan().toLowerCase();
+      if (filter.length==0) {
+        return self.selectedItems(locations);
+      } else {
+        self.selectedItems([]);
+        return ko.utils.arrayFilter(self.allItems(), function(item) {
+            if (item.title.toLowerCase().indexOf(filter)>=0) {
+              self.selectedItems.push(item);
+            }
+        });
+      }
+    });
+
+    // ...
+
+  };
+```
+This list of selected locations is taken and, via a loop in the view, brought to the
+screen.
 ```html
-<ul data-bind="foreach: locations">
-  <li data-bind="text: title"></li>
+<ul data-bind="foreach: selectedItems">
+  <li data-bind="text: title, attr: {id: 'loc_' + place_id }, event: { click: locationClicked, mouseover: locationMouseover, mouseout: locationMouseout }"></li>
 </ul>
 ```
 
-The KnockoutJS application is split into three sections on the Javascript side.
-There is the model (**LocationModel**) which creates and works with the list and there are two views(**filterArea** and **locationArea**) which initialize the respective parts of the UI. While this is of course not needed, if more work would be added to the interface, it will simplify structuring the work.
+To be able to identify the correct list item when the marker is hovered in the map,
+each item has a unique id. Just like the marker in the map has 3 listeners for click,
+mouseover and mouseout, the list item is provided with listeners for the same events.
+While the marker works within the GoogleMap, these list item listeners are working
+within the locationListModel. They identify the correct marker using the respective id
+and do their work, e.g. start / stop the animation and opening the infoWindow
+with the external data.
+A fourth listener is added here as it also works on the looks of the page. When
+a user clicks the hamburger icon above the map, the <aside> and <main> elements
+are translated left so the location list can be hidden or shown. This is achieved
+by binding the html elements to the __self.shiftClicked__ observable, which is
+initially set to false, i.e. show the elements. Clicking the icon negates the value
+and the observing elements __<el data-bind="css: { 'shift': shiftClicked }">__
+add or remove the css class __shift__. This nice feature is called [CSS binding](http://knockoutjs.com/documentation/css-binding.html).
 
-Clicking a list item or marker on the map will open an info window offering more information on the location plus pictures (see __*Third party webservices used*__)
 
-## Events inside the app
-### list item hover / marker hover
-The list and the markers are attached to one another. To show this, the markers start bouncing when a location or marker is hovered, just as vice versa the location colour changes when a marker or the list item is hovered.
-Identifying the marker to be animated is done via an event handler attached to the list items.
 ```javascript
-$( "li" ).hover(
-  // mouseover-action -> start marker bounce
-  function() {
-    var context = ko.contextFor(this);
-    toggleBounce(getMarker(context.$data.place_id));
-  },
-  // mouseout -> stop marker bounce
-  function() {
-    var context = ko.contextFor(this);
-    toggleBounce(getMarker(context.$data.place_id));
-  }
-);
-```
-getMarker() finds the correct marker in the list via its **place_id**
+var locationListModel = function () {
 
-Likewise, the marker has event listeners for mouseover and mouseout
-```javascript
-marker.addListener('mouseover', function() {
-  toggleBounce(this);
-  $("#loc_"+this.id+"").css("color", "white");
-});
-marker.addListener('mouseout', function() {
-  toggleBounce(this);
-  $("#loc_"+this.id+"").css("color", "#aaaaaa");
-});
-```    
+    // ...
 
-The bounce function is as follows
-```javascript
-function toggleBounce(marker) {
-  for (var i=0; i<markers.length; i++) {
-    if (markers[i] == marker) {
-      if (marker.getAnimation() !== null) {
-        marker.setAnimation(null);
-      } else {
-        marker.setAnimation(google.maps.Animation.BOUNCE);
-      }
-    } else {
-      markers[i].setAnimation(null);
-    }
-  }
-}
-```
-The specific marker is sent as a parameter. It starts bouncing when the animation is null or stops. Because moving the mouse quickly over the list items started the animation for several markers, there is a loop  which takes the list of all markers and iterates through it. It sets all marker animations to null but of the one sent as a parameter.
+    // hamburger icon click toggles the shiftClicked observable
+    hamburgerClicked = function(data, event) {
+      self.shiftClicked(!self.shiftClicked());
+    };
 
-### list item click / marker click
-Clicking a list item or marker opens a popup window above the marker showing more information and eventually inserting the flickr images.
-The event handler attached to the list item where you also need to identify the correct marker.
-```javascript
-$( "li" ).on("click",
-  function() {
-    var context = ko.contextFor(this);
-    var theMarker = getMarker(context.$data.place_id);
-    populateInfoWindow(theMarker, infoWindow);
-  }
-);
+    // onclick open the infoWindow and populate it with data
+    locationClicked = function(data, event) {
+      populateInfoWindow(getMarker(data.place_id), infoWindow);
+    };
+
+    // on mouseover start bouncing
+    locationMouseover = function(data, event) {
+      toggleBounce(getMarker(data.place_id));
+    };
+
+    // on mouseout stop bouncing
+    locationMouseout = function(data, event) {
+      toggleBounce(getMarker(data.place_id));
+    };
+};
+
+
+ko.applyBindings(new locationListModel());
 ```
 
-The simpler event handler attached to the marker:
-```javascript
-marker.addListener('click', function() {
-  populateInfoWindow(this, infoWindow);
-});
-```
 
-The function to populate the information window with data and 3rd party information, i.e. the flickr images:
+
+## 3rd party data
+[Flickr](https://www.flickr.com/) is used as an example for third party data. Clicking a list item / marker
+opens the __infoWindow__ for the specific location and loads 2 pictures.
+
+
 ```javascript
 function populateInfoWindow(marker, localInfoWindow) {
   // make sure the infoWindow is not already open
@@ -191,41 +225,12 @@ function populateInfoWindow(marker, localInfoWindow) {
   }
 }
 ```
-
-### filter button click
-The location list and the list of shown markers can be influenced via a text field above the list. Only the items containing the filter text are shown when the button is clicked.
-To get this running as part of KnockoutJS, we are using two [observable arrays](http://knockoutjs.com/documentation/observableArrays.html), one for the locations, one for the markers. The filter function is a [computed function](http://knockoutjs.com/documentation/computedObservables.html) that uses a knockout filter function for arrays. It checks the filter text against the location titles and returns only those applicable. The list of locations itself stays unaltered, instead the result is returned to a new observable. Thus, in the beginning, without any input text, the complete list is shown.
-```javascript
-var LocationModel = function() {
-  var self = this;
-  self.locations = ko.observableArray(locations);
-  self.markers = ko.observableArray(markers);
-  // create an observable for the filter text in the text box
-  self.filterText = ko.observable();
-  self.filterMarkers = ko.observable();
-
-  self.filteredLocations = ko.computed(function () {
-    if (!self.filterText()) {    
-      return self.locations(); // no filter text? get all locations
-    } else {
-      return ko.utils.arrayFilter(self.locations(), function (loc) {
-        return (loc.title.includes(self.filterText())); // return those locations including the filter text
-      });
-    }
-  });
-// ...
-}
-```
-Likewise, the markers are checked.
-
-
-## Third party webservices used
-### Flickr
-[Flickr](https://www.flickr.com/) offers web services hidden in the App Garden [Api Documentation](https://www.flickr.com/services/api/) available to you when you register for an account and request an API KEY.
+Flickr offers web services hidden in the App Garden [Api Documentation](https://www.flickr.com/services/api/) available to you when you register for an account and request an API KEY.
 
 The neighbourhood map uses two asynchronous webservice requests:
 * **flickr.photos.search** to find images and
 * **flickr.profile.getProfile** to find the user owning the copyright for the image.
+
 
 ```javascript
   var url = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=XXXXXXXX&per_page=2&nojsoncallback=1";
@@ -261,15 +266,6 @@ Google hides its errors within the console. Still, there might be issues also in
 * **no photos** indicates that the request worked fine but there were no photos available for the location
 * **status=fail** indicates that most probably something with the api key did not work. The system message is provided as feedback.
 
-## ToDo
-- [x] create location list
-- [x] create map with markers for locations
-- [x] create a means to hide / show the location list in an intuitive way
-- [x] create animation for markers / list item when hovering a list item
-- [x] create animation for markers / list item when hovering a marker
-- [x] open info window on list item click or marker click
-- [x] use flickr as a 3rd party webservice to asynchronously download images for the location
-- [x] implement a filter to display only those locations and markers fitting the selection
 
 ## Questions, tipps, and hints
 If you need assistance or would like to provide input, you can e-mail me at karstenDOTberlinATgmailDOTcom
