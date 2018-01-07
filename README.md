@@ -5,6 +5,9 @@ The app is a HTML5 GoogleMaps KnockoutJS application featuring a list of locatio
 The page is split in two parts. To the left, using an __aside__ element, the location list is available. The remaining width of the page is taken by the __main__ element with the map.
 The locations are shown by markers on the map. The list can be hidden / shown by clicking the hamburger icon in the top left of the page. **Hovering** over an item in the list animates the connected marker. **Clicking** a marker or list item will open an infoWindow with the name of the location, plus will it asynchronously download flickr images showing the location.
 
+## Live version 
+See the working page [here](http://karsten-berlin.net/parked/u_neighbourhoodmap/)
+
 ## How *neighbourhoodmap* works
 Some simple CSS is used to show / hide loading status and error messages that might occur.
 
