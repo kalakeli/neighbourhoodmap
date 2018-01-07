@@ -160,11 +160,11 @@ within the locationListModel. They identify the correct marker using the respect
 and do their work, e.g. start / stop the animation and opening the infoWindow
 with the external data.
 A fourth listener is added here as it also works on the looks of the page. When
-a user clicks the hamburger icon above the map, the <aside> and <main> elements
+a user clicks the hamburger icon above the map, the __aside__ and __main__ elements
 are translated left so the location list can be hidden or shown. This is achieved
 by binding the html elements to the __self.shiftClicked__ observable, which is
 initially set to false, i.e. show the elements. Clicking the icon negates the value
-and the observing elements __<el data-bind="css: { 'shift': shiftClicked }">__
+and the observing elements __data-bind="css: { 'shift': shiftClicked }"__
 add or remove the css class __shift__. This nice feature is called [CSS binding](http://knockoutjs.com/documentation/css-binding.html).
 
 
