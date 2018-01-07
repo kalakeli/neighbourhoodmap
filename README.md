@@ -2,7 +2,7 @@
 
 ## What *neighbourhoodmap* is
 The app is a HTML5 GoogleMaps KnockoutJS application featuring a list of locations in Münster (Westphalia) in Germany. It is run by opening *index.html* in the browser.
-The page is split in two parts. To the left, using an <aside> element, the location list is available. The remaining width of the page is taken by the <main> element with the map.
+The page is split in two parts. To the left, using an __aside__ element, the location list is available. The remaining width of the page is taken by the __main__ element with the map.
 The locations are shown by markers on the map. The list can be hidden / shown by clicking the hamburger icon in the top left of the page. **Hovering** over an item in the list animates the connected marker. **Clicking** a marker or list item will open an infoWindow with the name of the location, plus will it asynchronously download flickr images showing the location.
 
 ## How *neighbourhoodmap* works
