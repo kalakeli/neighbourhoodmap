@@ -8,53 +8,7 @@ var url = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyCltzwNrtVheO7HFu7oi
 var infoWindow;
 
 
-var locationListModel = function () {
-    var self = this;
-    self.shiftClicked = ko.observable(false);             // note if content needs to be shifted left
-    self.textToScan = ko.observable("");
-    self.allItems = ko.observableArray(locations);        // Initial items
-    self.selectedItems = ko.observableArray(locations);   // Initial selection list
 
-    // the function is called whenever self.textToScan updates
-    self.scanLocations = ko.computed( function() {
-      var filter = self.textToScan().toLowerCase();
-      if (filter.length==0) {
-        return self.selectedItems(locations);
-      } else {
-        self.selectedItems([]);
-        return ko.utils.arrayFilter(self.allItems(), function(item) {
-            if (item.title.toLowerCase().indexOf(filter)>=0) {
-              self.selectedItems.push(item);
-            }
-        });
-      }
-    });
-
-    // hamburger icon click toggles the shiftClicked observable, which
-    // is bound by the <aside> and <main> areas on the page and will
-    // perform a shift left / right depending on the status
-    hamburgerClicked = function(data, event) {
-      self.shiftClicked(!self.shiftClicked());
-    };
-
-    // onclick open the infoWindow and populate it with data
-    locationClicked = function(data, event) {
-      populateInfoWindow(getMarker(data.place_id), infoWindow);
-    };
-
-    // on mouseover start bouncing
-    locationMouseover = function(data, event) {
-      toggleBounce(getMarker(data.place_id));
-    };
-
-    // on mouseout stop bouncing
-    locationMouseout = function(data, event) {
-      toggleBounce(getMarker(data.place_id));
-    };
-};
-
-
-ko.applyBindings(new locationListModel());
 
 
 
@@ -114,7 +68,7 @@ $.getScript( url )
       marker.addListener('click', function() {
         populateInfoWindow(this, infoWindow);
       });
-  
+
       marker.addListener('mouseover', function() {
         toggleBounce(this);
         $("#loc_"+this.id+"").toggleClass("white");
@@ -146,7 +100,7 @@ $.getScript( url )
 function getMarker(id) {
   if (markers.length > 0) {
     for (var i = 0; i < markers.length; i++) {
-      if (markers[i].id == id) {
+      if (markers[i].id === id) {
         return markers[i];
       }
     }
@@ -154,6 +108,27 @@ function getMarker(id) {
     console.log("no markers defined");
   }
 }
+
+
+// Sets the map on all markers in the array.
+function setMapOnAll(map) {
+  for (var i = 0; i < markers.length; i++) {
+    markers[i].setMap(map);
+  }
+}
+
+// Removes the markers from the map, but keeps them in the array.
+function clearMarkers() {
+  setMapOnAll(null);
+}
+
+// Shows any markers currently in the array.
+function showMarkers() {
+  setMapOnAll(map);
+}
+
+
+
 
 // ------  toggle bouncing effect  ------
 function toggleBounce(marker) {
@@ -174,7 +149,7 @@ function toggleBounce(marker) {
 // ------  populate infowindow with data from marker and 3rd party webservices
 function populateInfoWindow(marker, localInfoWindow) {
   // make sure the infoWindow is not already open
-  if (localInfoWindow.marker != marker) {
+  if (localInfoWindow.marker !== marker) {
     var inner = "<h2>" + marker.title + "</h2><h3>Flickr Images</h3>";
 
     localInfoWindow.marker = marker;
@@ -363,3 +338,78 @@ function readConsole() {
     };
   }
 }
+
+
+// ----- K N O C K O U T J S    P A R T   -------------
+
+
+var locationListModel = function () {
+    var self = this;
+    self.shiftClicked = ko.observable(false);             // note if content needs to be shifted left
+    self.textToScan = ko.observable("");
+    self.allItems = ko.observableArray(locations);        // Initial items
+    self.selectedItems = ko.observableArray(locations);   // Initial selection list
+    self.allMarkers = ko.observableArray(markers);        // Initial items
+    self.selectedMarkers = ko.observableArray(markers);   // Initial selection list
+
+    // the function is called whenever self.textToScan updates
+    self.scanLocationsList = ko.computed( function() {
+      var filter = self.textToScan().toLowerCase();
+      if (filter.length === 0) {
+        return self.selectedItems(locations);
+      } else {
+        self.selectedItems([]);
+        return ko.utils.arrayFilter(self.allItems(), function(item) {
+            if (item.title.toLowerCase().indexOf(filter)>=0) {
+              self.selectedItems.push(item);
+            }
+        });
+      }
+    });
+
+    // this function works as the one before but uses the list of markers on
+    // the map
+    self.scanLocationsMap = ko.computed( function() {
+      var filter = self.textToScan().toLowerCase();
+      if (filter.length === 0) {
+        markers = self.allMarkers();
+        showMarkers();
+        return self.allMarkers();
+      } else {
+        self.selectedMarkers([]);
+        clearMarkers();
+        return ko.utils.arrayFilter(self.allMarkers(), function(item) {
+            if (item.title.toLowerCase().indexOf(filter)>=0) {
+              self.selectedMarkers.push(item);
+            }
+            markers = self.selectedMarkers();
+            showMarkers();
+        });
+      }
+    });
+
+    // hamburger icon click toggles the shiftClicked observable, which
+    // is bound by the <aside> and <main> areas on the page and will
+    // perform a shift left / right depending on the status
+    hamburgerClicked = function(data, event) {
+      self.shiftClicked(!self.shiftClicked());
+    };
+
+    // onclick open the infoWindow and populate it with data
+    locationClicked = function(data, event) {
+      populateInfoWindow(getMarker(data.place_id), infoWindow);
+    };
+
+    // on mouseover start bouncing
+    locationMouseover = function(data, event) {
+      toggleBounce(getMarker(data.place_id));
+    };
+
+    // on mouseout stop bouncing
+    locationMouseout = function(data, event) {
+      toggleBounce(getMarker(data.place_id));
+    };
+};
+
+
+ko.applyBindings(new locationListModel());

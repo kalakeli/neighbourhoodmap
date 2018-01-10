@@ -47,12 +47,12 @@
           <li data-bind="text: title, attr: {id: 'loc_' + place_id }, event: { click: locationClicked, mouseover: locationMouseover, mouseout: locationMouseout }"></li>
         </ul>
       </aside>
-      <!-- <main> -->
+
       <main data-bind="css: { 'shift': shiftClicked }">
         <div class="hamburger" data-bind="click: hamburgerClicked">
           <i class="fa fa-2x fa-bars" aria-hidden="true"></i>
         </div>
-         <div id="map"  data-bind="css: { 'shift': shiftClicked }"></div>
+         <div id="map"></div>
         <div id="loadingbox"><i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i>&nbsp;&nbsp;Loading ... </div>
         <div id="errorbox"></div>
       </main>
@@ -64,6 +64,5 @@
     <!-- Include map and ui work -->
     <script src="js/locations.js"></script>
     <script src="js/app.js"></script>
-    <!-- <script src="js/main.js"></script> -->
   </body>
 </html>
