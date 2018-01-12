@@ -11,14 +11,6 @@
     <link href="css/font-awesome.min.css" rel="stylesheet">
     <!-- text and headline font -->
     <link href="https://fonts.googleapis.com/css?family=Pathway+Gothic+One" rel="stylesheet">
-    <!-- Include knockout -->
-    <script src="js/knockout-3.4.2.js"></script>
-    <!-- Include jQuery -->
-    <script
-    			  src="http://code.jquery.com/jquery-2.2.4.min.js"
-    			  integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
-    			  crossorigin="anonymous"></script>
-
   </head>
   <body>
     <noscript>
@@ -44,7 +36,7 @@
           </button>
         </div>
         <ul data-bind="foreach: selectedItems">
-          <li data-bind="text: title, attr: {id: 'loc_' + place_id }, event: { click: locationClicked, mouseover: locationMouseover, mouseout: locationMouseout }"></li>
+          <li data-bind="text: title, attr: {id: 'loc_' + place_id }, event: { click: locationClicked }"></li>
         </ul>
       </aside>
 
@@ -61,7 +53,15 @@
     </div>
 
 
+    <!-- Include knockout -->
+    <script src="js/knockout-3.4.2.js"></script>
+    <!-- Include jQuery -->
+    <script
+    			  src="http://code.jquery.com/jquery-2.2.4.min.js"
+    			  integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+    			  crossorigin="anonymous"></script>
     <!-- Include map and ui work -->
+    <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCltzwNrtVheO7HFu7oiV6tgZ9Nx5YBIuA&v___&callback=initMap" async defer onerror="mapError()"></script>
     <script src="js/locations.js"></script>
     <script src="js/app.js"></script>
   </body>
