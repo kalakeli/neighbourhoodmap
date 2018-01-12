@@ -4,32 +4,18 @@
 var map;           // the map
 var markers = [];  // empty array to be filled with markers for locations
 var errorH = "<h2>Ooops .. something went wrong!</h2>";
-var url = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyCltzwNrtVheO7HFu7oiV6tgZ9Nx5YBIuA&v&v=3&callback=initMap';
 var infoWindow;
-
-
-
-
-
 
 // ----- G O O G L E   M A P S   P A R T   -------------
 
-// -----  get GoogleMaps via ajax -----
-$.getScript( url )
-  .done(function( script, textStatus ) {
-    readConsole(); // look for GoogleMaps errors and warnings
-  })
-
-  .fail(function( jqxhr, settings, exception ) {
-    console.log(jqxhr.getAllResponseHeaders());
-    $( '#errorbox' ).html( errorH + "<p>The GoogleMaps script failed to load!</p>" );
-    $( '#loadingbox' ).css('display', 'none');
-    $( '#errorbox' ).fadeIn("fast");
-  });
-
+  // -----  mapError() -------
+  mapError = function(){
+    readConsole();
+    console.log('something went wrong loading the map');
+  };
 
   // -----  initMap() --------
-  function initMap() {
+  initMap = function() {
     $( '#loadingbox' ).css('display', 'none');
 
     map = new google.maps.Map(document.getElementById('map'), {
@@ -63,21 +49,15 @@ $.getScript( url )
       markers.push(marker);
 
       // add listeners for the marker
-      // - on click open the infoWindow and load external data
-      // - on mouseover / out toggle bounce and css class
+      // - on click animate the marker, zoom to level 16 and pan to marker,
+      //   open the infoWindow and load external data
       marker.addListener('click', function() {
+        toggleBounce(this);
+        map.setZoom(16);
+        map.setCenter(this.getPosition());
         populateInfoWindow(this, infoWindow);
       });
 
-      marker.addListener('mouseover', function() {
-        toggleBounce(this);
-        $("#loc_"+this.id+"").toggleClass("white");
-      });
-
-      marker.addListener('mouseout', function() {
-        toggleBounce(this);
-        $("#loc_"+this.id+"").toggleClass("white");
-      });
 
       // extend the map with the next position
       bounds.extend(markers[i].position);
@@ -92,7 +72,7 @@ $.getScript( url )
       map.fitBounds(bounds);
     });
 
-  }
+  };
 
 
 // -----  get Marker from array  ------
@@ -117,12 +97,12 @@ function setMapOnAll(map) {
   }
 }
 
-// Removes the markers from the map, but keeps them in the array.
+// Removes the markers from the map, keeping them in the array
 function clearMarkers() {
   setMapOnAll(null);
 }
 
-// Shows any markers currently in the array.
+// Shows any markers currently in the array
 function showMarkers() {
   setMapOnAll(map);
 }
@@ -159,9 +139,10 @@ function populateInfoWindow(marker, localInfoWindow) {
     // get flickr pics for chosen location
     getFlickrPics(marker.title, marker.position.lat(), marker.position.lng(), localInfoWindow);
 
-    // add listener to clear the marker from the infoWindow
+    // add listener to clear the marker from the infoWindow plus stop animation
     localInfoWindow.addListener('closeclick', function() {
       localInfoWindow.marker = null;
+      toggleBounce(getMarker(marker));
     });
   }
 }
@@ -223,18 +204,16 @@ function getFlickrPics(tags, lat, lng, iw) {
           var photo = photos[i];
           content += "<figure>";
           content += "<img src='https://farm"+photo.farm+".staticflickr.com/"+photo.server+"/"+photo.id+"_"+photo.secret+".jpg' width='320' alt='flickr img'>";
-          content += "<figcaption>© <span id='copyright_"+i+"'></span> - "+photo.title+"</figcaption>";
+          content += "<figcaption>© ";
+          content += photo.owner;
+          content += " - "+photo.title+"</figcaption>";
           content += "</figure>";
-
-          // get copyright for the displayed image
-          var owner = getFlickrProfile(i, photo.owner);
         }
 
       } else {
         content += "<hr>" +
                    "<p><em>Awwww ... unfortunately, no images were found</em> " +
                    "<br>Go and take some pictures yourself! :-) </p>";
-
       }
     } else {
       content += "<hr>" +
@@ -247,50 +226,7 @@ function getFlickrPics(tags, lat, lng, iw) {
   });
 }
 
-// -----  read flickr profile  --------
-// - Parameters:
-//   - pos     -> where to put the name
-//   - ownerID -> ID of the flickr user
-function getFlickrProfile(pos, ownerID) {
-  var url = "https://api.flickr.com/services/rest/?method=flickr.profile.getProfile&api_key=7f184bc17deeb930da0352704733534e&nojsoncallback=1";
 
-  // Fire off the request
-  var req = $.ajax({
-    method: "get",
-    dataType: "json",
-    url: url,
-    data: {format: "json", user_id : ownerID}
-  });
-
-  req.fail(function() {
-    alert("Copyright data associated with an image could not be read!");
-  });
-
-  req.success(function() {
-    var fn = "", ln = "", cp = "";
-    var response = $.parseJSON(req.responseText);
-    fn = response.profile.first_name;
-    ln = response.profile.last_name;
-    cp = "<a href='https://www.flickr.com/photos/"+response.profile.id+"' target='_blank'>";
-    if ( (typeof(fn) != "undefined") ) {
-      cp += fn;
-    }
-    if ( (typeof(ln) != "undefined") ) {
-      cp += " " + ln;
-    }
-
-    if (cp.length === 0) {
-      cp += " " + ownerID;
-    }
-    cp += "</a>";
-
-    if (response.stat === "ok") {
-      $("#copyright_"+pos+"").html(cp);
-    } else {
-      return "The user could not be read!";
-    }
-  });
-}
 
 // -----  read console messages --------
 // -- Note: Messages read below are just examples as they turned up
@@ -342,8 +278,7 @@ function readConsole() {
 
 // ----- K N O C K O U T J S    P A R T   -------------
 
-
-var locationListModel = function () {
+var LocationListModel = function () {
     var self = this;
     self.shiftClicked = ko.observable(false);             // note if content needs to be shifted left
     self.textToScan = ko.observable("");
@@ -397,19 +332,13 @@ var locationListModel = function () {
 
     // onclick open the infoWindow and populate it with data
     locationClicked = function(data, event) {
-      populateInfoWindow(getMarker(data.place_id), infoWindow);
-    };
-
-    // on mouseover start bouncing
-    locationMouseover = function(data, event) {
+      var theMarker = getMarker(data.place_id);
       toggleBounce(getMarker(data.place_id));
-    };
-
-    // on mouseout stop bouncing
-    locationMouseout = function(data, event) {
-      toggleBounce(getMarker(data.place_id));
+      map.setZoom(16);
+      map.setCenter(theMarker.getPosition());
+      populateInfoWindow(theMarker, infoWindow);
     };
 };
 
 
-ko.applyBindings(new locationListModel());
+ko.applyBindings(new LocationListModel());
