@@ -10,8 +10,12 @@ var infoWindow;
 
   // -----  mapError() -------
   mapError = function(){
-    readConsole();
-    console.log('something went wrong loading the map');
+    var errBox = document.getElementById("errorbox");
+    var loadingBox = document.getElementById("loadingbox");
+    errBox.innerHTML = "<p>Something went wrong loading the map</p><p>If this is your application, place make sure you add a working API key for authentication and check on the spelling.</p>" +
+                            "<p><a href='https://developers.google.com/maps/documentation/javascript/get-api-key?hl=en' target='_blank'>Learn more</a></p>";
+    loadingBox.style.display = "none";
+    errBox.style.display = "block";
   };
 
   // -----  initMap() --------
@@ -290,23 +294,26 @@ var LocationListModel = function () {
     // the function is called whenever self.textToScan updates
     self.scanLocationsList = ko.computed( function() {
       var filter = self.textToScan().toLowerCase();
-      if (filter.length === 0) {
+      if (!filter.length) {
         return self.selectedItems(locations);
       } else {
         self.selectedItems([]);
-        return ko.utils.arrayFilter(self.allItems(), function(item) {
-            if (item.title.toLowerCase().indexOf(filter)>=0) {
-              self.selectedItems.push(item);
-            }
+        var numArr = self.allItems();
+        return numArr.filter(function(item){
+          if (item.title.toLowerCase().indexOf(filter)>=0) {
+            self.selectedItems.push(item);
+          }
         });
       }
     });
 
     // this function works as the one before but uses the list of markers on
     // the map
+    // also, it uses the knockoutJS utility function arrayFilter instead of the
+    // JS filter function to use a second technique
     self.scanLocationsMap = ko.computed( function() {
       var filter = self.textToScan().toLowerCase();
-      if (filter.length === 0) {
+      if (!filter.length) {
         markers = self.allMarkers();
         showMarkers();
         return self.allMarkers();
